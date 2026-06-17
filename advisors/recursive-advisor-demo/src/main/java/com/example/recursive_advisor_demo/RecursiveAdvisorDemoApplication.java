@@ -1,12 +1,13 @@
 package com.example.recursive_advisor_demo;
 
+import tools.jackson.databind.ObjectMapper;
+
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.client.advisor.ToolCallAdvisor;
 import org.springframework.ai.chat.client.advisor.api.AdvisorChain;
 import org.springframework.ai.chat.client.advisor.api.BaseAdvisor;
-import org.springframework.ai.model.ModelOptionsUtils;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -52,6 +53,8 @@ public class RecursiveAdvisorDemoApplication {
 
 	static class MyLogAdvisor implements BaseAdvisor {
 
+        private ObjectMapper objectMapper = new ObjectMapper();
+
 		@Override
 		public int getOrder() {
 			return 0;
@@ -70,7 +73,7 @@ public class RecursiveAdvisorDemoApplication {
 		}
 
 		private void print(String label, Object object) {
-			System.out.println(label + ":" + ModelOptionsUtils.toJsonString(object) + "\n");
+			System.out.println(label + ":" + this.objectMapper.writeValueAsString(object) + "\n");
 		}
 
 	}

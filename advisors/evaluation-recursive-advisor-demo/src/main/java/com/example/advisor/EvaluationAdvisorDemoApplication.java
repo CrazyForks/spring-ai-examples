@@ -2,13 +2,14 @@ package com.example.advisor;
 
 import java.util.Random;
 
+import tools.jackson.databind.ObjectMapper;
+
 import org.springframework.ai.anthropic.AnthropicChatModel;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.client.advisor.api.AdvisorChain;
 import org.springframework.ai.chat.client.advisor.api.BaseAdvisor;
-import org.springframework.ai.model.ModelOptionsUtils;
 import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.boot.CommandLineRunner;
@@ -67,6 +68,8 @@ public class EvaluationAdvisorDemoApplication {
 
 	static class MyLoggingAdvisor implements BaseAdvisor {
 
+        private ObjectMapper objectMapper = new ObjectMapper();
+
 		private final int order;
 
 		public MyLoggingAdvisor(int order) {
@@ -91,7 +94,7 @@ public class EvaluationAdvisorDemoApplication {
 		}
 
 		private void print(String label, Object object) {
-			System.out.println(label + ":" + ModelOptionsUtils.toJsonString(object) + "\n");
+			System.out.println(label + ":" + this.objectMapper.writeValueAsString(object) + "\n");
 		}
 
 	}

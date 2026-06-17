@@ -4,16 +4,17 @@
 # Usage: ./scripts/update-spring-ai-version.sh [VERSION]
 # Example: ./scripts/update-spring-ai-version.sh 1.0.1
 # Example: ./scripts/update-spring-ai-version.sh 1.1.0-SNAPSHOT
+# Example: ./scripts/update-spring-ai-version.sh 2.0.0-RC1
 
 set -e
 
 # Get the version parameter or use default
-VERSION="${1:-1.1.0-SNAPSHOT}"
+VERSION="${1:-2.0.0-RC1}"
 
 # Validate version format
-if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-SNAPSHOT)?$ ]]; then
-    echo "Error: Invalid version format. Expected: X.Y.Z or X.Y.Z-SNAPSHOT"
-    echo "Example: 1.0.1 or 1.1.0-SNAPSHOT"
+if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-(SNAPSHOT|RC[0-9]+|M[0-9]+))?$ ]]; then
+    echo "Error: Invalid version format. Expected: X.Y.Z, X.Y.Z-SNAPSHOT, X.Y.Z-RC1, or X.Y.Z-M1"
+    echo "Example: 2.0.0 or 2.0.0-SNAPSHOT or 2.0.0-RC1 or 2.0.0-M1"
     exit 1
 fi
 
@@ -54,7 +55,7 @@ while IFS= read -r pom_file; do
         cp "$pom_file" "$backup_file"
         
         # Update the version property
-        sed -i "s|<spring-ai.version>.*</spring-ai.version>|<spring-ai.version>${VERSION}</spring-ai.version>|g" "$pom_file"
+        sed -i '' "s|<spring-ai.version>.*</spring-ai.version>|<spring-ai.version>${VERSION}</spring-ai.version>|g" "$pom_file"
         updated_file=true
     fi
     
@@ -68,8 +69,8 @@ while IFS= read -r pom_file; do
             cp "$pom_file" "$backup_file"
         fi
         
-        # Update the BOM version using sed with pattern for multiline
-        sed -i '/<artifactId>spring-ai-bom<\/artifactId>/{n;s|<version>.*</version>|<version>'"${VERSION}"'</version>|}' "$pom_file"
+        # Update the BOM version using perl (cross-platform multiline replacement)
+        perl -i -0pe 's|(<artifactId>spring-ai-bom</artifactId>\s*<version>)[^<]*(</version>)|${1}'"${VERSION}"'${2}|g' "$pom_file"
         
         updated_file=true
     fi

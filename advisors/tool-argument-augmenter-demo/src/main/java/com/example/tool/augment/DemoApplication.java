@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.databind.ObjectMapper;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClientRequest;
@@ -12,8 +13,8 @@ import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.ToolCallAdvisor;
 import org.springframework.ai.chat.client.advisor.api.AdvisorChain;
 import org.springframework.ai.chat.client.advisor.api.BaseAdvisor;
+import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
-import org.springframework.ai.model.ModelOptionsUtils;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.ai.tool.augment.AugmentedToolCallbackProvider;
@@ -84,6 +85,7 @@ public class DemoApplication {
 				
 				var answer = chatClient
 					.prompt("What is current weather in Paris?")
+					.advisors(a -> a.param(ChatMemory.CONVERSATION_ID, "default-conversation"))
 					.call()
 					.entity(MyResponse.class);
 
@@ -104,6 +106,8 @@ public class DemoApplication {
 
 	static class MyLogAdvisor implements BaseAdvisor {
 
+        private ObjectMapper objectMapper = new ObjectMapper();
+
 		@Override
 		public int getOrder() {
 			return 0;
@@ -122,7 +126,7 @@ public class DemoApplication {
 		}
 
 		private void print(String label, Object object) {
-			System.out.println(label + ":" + ModelOptionsUtils.toJsonString(object) + "\n");
+			System.out.println(label + ":" + this.objectMapper.writeValueAsString(object) + "\n");
 		}
 
 	}

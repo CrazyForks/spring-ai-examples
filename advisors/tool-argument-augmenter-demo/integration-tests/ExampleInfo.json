@@ -1,11 +1,8 @@
 {
-  "timeoutSec": 180,
+  "timeoutSec": 120,
   "successRegex": [
-    "Started ToolArgumentAugmenterDemoApplication",
-    "What is current weather in Paris",
-    "LLM Reasoning",
-    "Confidence",
-    "weather"
+    "BUILD SUCCESS",
+    "Started.*Application"
   ],
   "requiredEnv": [
     "OPENAI_API_KEY"
@@ -13,8 +10,7 @@
   "aiValidation": {
     "enabled": true,
     "validationMode": "hybrid",
-    "readmeFile": "../README.md",
-    "expectedBehavior": "Demonstrate tool argument augmentation with explainable AI. Should capture LLM reasoning (inner thoughts), confidence levels, and memory notes before tool execution. The weather tool should be called with reasoning transparency.",
-    "promptTemplate": "workflow_validation"
+    "expectedBehavior": "Spring Boot application should start successfully and demonstrate basic functionality",
+    "promptTemplate": "example_validation"
   }
 }

@@ -20,13 +20,13 @@ public class SpringAiJavaFunctionCallbackApplication {
 	}
 
 	@Bean
-	public CommandLineRunner init(ChatClient.Builder chatClientBuilder) {
+	public CommandLineRunner init(ChatClient.Builder chatClientBuilder, ToolCallback weatherFunctionInfo) {
 		return args -> {
 			try {
 				ChatClient chatClient = chatClientBuilder.build();
 				ChatResponse response = chatClient
 						.prompt("What are the weather conditions in San Francisco, Tokyo, and Paris? Find the temperature in Celsius for each of the three locations.")
-						.toolNames("WeatherInfo")
+						.tools(weatherFunctionInfo)
 						.call().chatResponse();
 
 				System.out.println("Response: " + response);

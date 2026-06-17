@@ -15,12 +15,12 @@ import org.springframework.context.annotation.Description
 class KotlinFunctionCallbackApplication {
 
 	@Bean
-	fun init(chatClientBuilder: ChatClient.Builder, context: ConfigurableApplicationContext) = CommandLineRunner {
+	fun init(chatClientBuilder: ChatClient.Builder, weatherFunctionInfo: ToolCallback, context: ConfigurableApplicationContext) = CommandLineRunner {
 		try {
 			val chatClient = chatClientBuilder.build();
 			val response = chatClient
 				.prompt("What are the weather conditions in San Francisco, Tokyo, and Paris? Find the temperature in Celsius for each of the three locations.")
-				.toolNames("WeatherInfo")
+				.tools(weatherFunctionInfo)
 				.call().chatResponse();
 
 			println("Response: $response")
