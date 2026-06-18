@@ -27,9 +27,6 @@
 
 		<module>models/chat/helloworld</module>
 
-		<module>model-context-protocol/sqlite/simple</module>
-		<module>model-context-protocol/sqlite/chatbot</module>
-		<module>model-context-protocol/brave</module>
 		<module>model-context-protocol/brave-docker-agents-gateway</module>
 		<module>model-context-protocol/client-starter/starter-default-client</module>
 		<module>model-context-protocol/client-starter/starter-webflux-client</module>
@@ -38,7 +35,6 @@
 		<module>model-context-protocol/weather/starter-stdio-server</module>
 		<module>model-context-protocol/weather/starter-webflux-server</module>
 		<module>model-context-protocol/weather/starter-webmvc-server</module>
-		<module>model-context-protocol/weather/starter-webmvc-oauth2-server</module>
 		<module>model-context-protocol/web-search/brave-starter</module>
 		<module>model-context-protocol/web-search/brave-chatbot</module>
 		
