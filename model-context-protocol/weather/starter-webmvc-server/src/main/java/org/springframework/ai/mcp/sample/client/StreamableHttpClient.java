@@ -21,6 +21,7 @@ import io.modelcontextprotocol.client.McpClient;
 import io.modelcontextprotocol.client.transport.HttpClientStreamableHttpTransport;
 import io.modelcontextprotocol.spec.McpSchema.CallToolRequest;
 import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
+import io.modelcontextprotocol.spec.McpSchema.ListToolsResult;
 
 /**
  * @author Christian Tzolov
@@ -28,9 +29,9 @@ import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
 public class StreamableHttpClient {
 
 	public static void main(String[] args) {
-		
+
 		HttpClientStreamableHttpTransport transport = HttpClientStreamableHttpTransport.builder("http://localhost:8080")
-				.build();
+			.build();
 
 		var client = McpClient.sync(transport).build();
 
@@ -39,17 +40,21 @@ public class StreamableHttpClient {
 		client.ping();
 
 		// List and demonstrate tools
-		// ListToolsResult toolsList = client.listTools();
-		// System.out.println("Available Tools = " + toolsList);
+		ListToolsResult toolsList = client.listTools();
+		System.out.println("Available Tools = " + toolsList);
 
-		CallToolResult weatherForcastResult = client.callTool(new CallToolRequest("toUpperCase",
-				Map.of("input", "hellow")));
-		// CallToolResult weatherForcastResult = client.callTool(new CallToolRequest("getWeatherForecastByLocation",
-		// 		Map.of("latitude", "47.6062", "longitude", "-122.3321")));
+		CallToolResult toUpperCaseResult = client
+			.callTool(CallToolRequest.builder("toUpperCase").arguments(Map.of("input", "hellow")).build());
+		System.out.println("toUpperCase Result = " + toUpperCaseResult);
+
+		CallToolResult weatherForcastResult = client.callTool(CallToolRequest.builder("getWeatherForecastByLocation")
+			.arguments(Map.of("latitude", "47.6062", "longitude", "-122.3321"))
+			.build());
 		System.out.println("Weather Forcast: " + weatherForcastResult);
 
-		// CallToolResult alertResult = client.callTool(new CallToolRequest("getAlerts", Map.of("state", "NY")));
-		// System.out.println("Alert Response = " + alertResult);
+		CallToolResult alertResult = client
+			.callTool(CallToolRequest.builder("getAlerts").arguments(Map.of("state", "NY")).build());
+		System.out.println("Alert Response = " + alertResult);
 
 		client.closeGracefully();
 	}

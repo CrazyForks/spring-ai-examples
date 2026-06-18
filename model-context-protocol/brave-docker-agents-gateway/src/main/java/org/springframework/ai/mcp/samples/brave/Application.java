@@ -25,7 +25,7 @@ public class Application {
 
 		return args -> {
 
-			var chatClient = chatClientBuilder.defaultToolCallbacks(toolCallbackProvider).build();
+			var chatClient = chatClientBuilder.defaultTools(toolCallbackProvider).build();
 
 			String question = "Does Spring AI supports the Model Context Protocol? Please provide some references.";
 			logger.info("QUESTION: {}\n", question);

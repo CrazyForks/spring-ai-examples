@@ -18,11 +18,11 @@ package org.springframework.ai.mcp.sample.client;
 import java.util.Map;
 
 import io.modelcontextprotocol.client.McpClient;
-import org.springframework.ai.mcp.client.webflux.transport.WebClientStreamableHttpTransport;
 import io.modelcontextprotocol.spec.McpSchema.CallToolRequest;
 import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
 import io.modelcontextprotocol.spec.McpSchema.ListToolsResult;
 
+import org.springframework.ai.mcp.client.webflux.transport.WebClientStreamableHttpTransport;
 import org.springframework.web.reactive.function.client.WebClient;
 
 /**
@@ -31,9 +31,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 public class StreamableHttpClient {
 
 	public static void main(String[] args) {
-		
+
 		var transport = WebClientStreamableHttpTransport.builder(WebClient.builder().baseUrl("http://localhost:8080"))
-				.build();
+			.build();
 
 		var client = McpClient.sync(transport).build();
 
@@ -45,11 +45,13 @@ public class StreamableHttpClient {
 		ListToolsResult toolsList = client.listTools();
 		System.out.println("Available Tools = " + toolsList);
 
-		CallToolResult weatherForcastResult = client.callTool(new CallToolRequest("getWeatherForecastByLocation",
-				Map.of("latitude", "47.6062", "longitude", "-122.3321")));
+		CallToolResult weatherForcastResult = client.callTool(CallToolRequest.builder("getWeatherForecastByLocation")
+			.arguments(Map.of("latitude", "47.6062", "longitude", "-122.3321"))
+			.build());
 		System.out.println("Weather Forcast: " + weatherForcastResult);
 
-		CallToolResult alertResult = client.callTool(new CallToolRequest("getAlerts", Map.of("state", "NY")));
+		CallToolResult alertResult = client
+			.callTool(CallToolRequest.builder("getAlerts").arguments(Map.of("state", "NY")).build());
 		System.out.println("Alert Response = " + alertResult);
 
 		client.closeGracefully();

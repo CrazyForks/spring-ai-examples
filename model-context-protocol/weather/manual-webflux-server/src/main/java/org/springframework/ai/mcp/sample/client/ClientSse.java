@@ -15,10 +15,9 @@
 */
 package org.springframework.ai.mcp.sample.client;
 
-import org.springframework.ai.mcp.client.webflux.transport.WebFluxSseClientTransport;
 import io.modelcontextprotocol.json.McpJsonDefaults;
-import io.modelcontextprotocol.json.McpJsonMapper;
 
+import org.springframework.ai.mcp.client.webflux.transport.WebFluxSseClientTransport;
 import org.springframework.web.reactive.function.client.WebClient;
 
 /**

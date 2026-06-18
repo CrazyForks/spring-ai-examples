@@ -19,9 +19,7 @@ import java.io.File;
 
 import io.modelcontextprotocol.client.transport.ServerParameters;
 import io.modelcontextprotocol.client.transport.StdioClientTransport;
-
 import io.modelcontextprotocol.json.McpJsonDefaults;
-import io.modelcontextprotocol.json.McpJsonMapper;
 
 /**
  * With stdio transport, the MCP server is automatically started by the client. But you

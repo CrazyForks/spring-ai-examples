@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import org.springframework.ai.tool.annotation.Tool;
+import org.springframework.ai.mcp.annotation.McpTool;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
@@ -90,7 +90,7 @@ public class WeatherService {
 	 * @return The forecast for the given location
 	 * @throws RestClientException if the request fails
 	 */
-	@Tool(description = "Get weather forecast for a specific latitude/longitude")
+	@McpTool(description = "Get weather forecast for a specific latitude/longitude")
 	public String getWeatherForecastByLocation(double latitude, double longitude) {
 
 		var points = restClient.get()
@@ -119,7 +119,7 @@ public class WeatherService {
 	 * @return Human readable alert information
 	 * @throws RestClientException if the request fails
 	 */
-	@Tool(description = "Get weather alerts for a US state. Input is Two-letter US state code (e.g. CA, NY)")
+	@McpTool(description = "Get weather alerts for a US state. Input is Two-letter US state code (e.g. CA, NY)")
 	public String getAlerts(String state) {
 		Alert alert = restClient.get().uri("/alerts/active/area/{state}", state).retrieve().body(Alert.class);
 

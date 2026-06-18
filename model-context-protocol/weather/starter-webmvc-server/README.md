@@ -1,22 +1,17 @@
 # Spring AI MCP Weather Server Sample with WebMVC Starter
 
-This sample project demonstrates how to create an MCP server using the Spring AI MCP Server Boot Starter with WebMVC transport. It implements a weather service that exposes tools for retrieving weather information using the National Weather Service API.
+Demonstrates an MCP server using the Spring AI MCP Server Boot Starter with WebMVC transport, exposing weather tools via the National Weather Service API.
 
 For more information, see the [MCP Server Boot Starter](https://docs.spring.io/spring-ai/reference/api/mcp/mcp-server-boot-starter-docs.html) reference documentation.
 
 ## Overview
 
-The sample showcases:
 - Integration with `spring-ai-mcp-server-webmvc-spring-boot-starter`
-- Support for both SSE (Server-Sent Events) and STDIO transports
-- Automatic tool registration using Spring AI's `@Tool` annotation
-- Two weather-related tools:
-  - Get weather forecast by location (latitude/longitude)
-  - Get weather alerts by US state
+- SSE, Streamable HTTP, and STDIO transport support
+- Automatic tool registration via `@McpTool` annotation (no manual bean wiring required)
+- Two weather tools: forecast by lat/lon and alerts by US state
 
 ## Dependencies
-
-The project requires the Spring AI MCP Server WebMVC Boot Starter:
 
 ```xml
 <dependency>
@@ -25,160 +20,101 @@ The project requires the Spring AI MCP Server WebMVC Boot Starter:
 </dependency>
 ```
 
-This starter provides:
-- HTTP-based transport using Spring MVC (`WebMvcSseServerTransport`)
-- Auto-configured SSE endpoints
-- Optional STDIO transport
-- Included `spring-boot-starter-web` and `mcp-spring-webmvc` dependencies
+## Building
 
-## Building the Project
-
-Build the project using Maven:
 ```bash
 ./mvnw clean install -DskipTests
 ```
 
 ## Running the Server
 
-The server supports two transport modes:
-
-### WebMVC SSE Mode (Default)
+### WebMVC SSE / Streamable HTTP (Default)
 ```bash
 java -jar target/mcp-weather-starter-webmvc-server-0.0.1-SNAPSHOT.jar
 ```
+Server starts on port 8080.
 
 ### STDIO Mode
-To enable STDIO transport, set the appropriate properties:
 ```bash
-java -Dspring.ai.mcp.server.stdio=true -Dspring.main.web-application-type=none -jar target/mcp-weather-starter-webmvc-server-0.0.1-SNAPSHOT.jar
+java -Dspring.ai.mcp.server.stdio=true -Dspring.main.web-application-type=none \
+  -jar target/mcp-weather-starter-webmvc-server-0.0.1-SNAPSHOT.jar
 ```
 
 ## Configuration
 
-Configure the server through `application.properties`:
-
 ```properties
-# Server identification
 spring.ai.mcp.server.name=my-weather-server
 spring.ai.mcp.server.version=0.0.1
-
-# Server type (SYNC/ASYNC)
 spring.ai.mcp.server.type=SYNC
-
-# Transport configuration
 spring.ai.mcp.server.stdio=false
 spring.ai.mcp.server.sse-message-endpoint=/mcp/message
 
-# Change notifications
-spring.ai.mcp.server.resource-change-notification=true
-spring.ai.mcp.server.tool-change-notification=true
-spring.ai.mcp.server.prompt-change-notification=true
-
-# Logging (required for STDIO transport)
+# Required for STDIO transport
 spring.main.banner-mode=off
 logging.file.name=./target/starter-webmvc-server.log
 ```
 
-## Available Tools
+## Tool Registration
 
-### Weather Forecast Tool
-- Name: `getWeatherForecastByLocation`
-- Description: Get weather forecast for a specific latitude/longitude
-- Parameters:
-  - `latitude`: double - Latitude coordinate
-  - `longitude`: double - Longitude coordinate
-
-### Weather Alerts Tool
-- Name: `getAlerts`
-- Description: Get weather alerts for a US state
-- Parameters:
-  - `state`: String - Two-letter US state code (e.g., CA, NY)
-
-## Server Implementation
-
-The server uses Spring Boot and Spring AI's tool annotations for automatic tool registration:
-
-```java
-@SpringBootApplication
-public class McpServerApplication {
-    public static void main(String[] args) {
-        SpringApplication.run(McpServerApplication.class, args);
-    }
-
-    @Bean
-    public ToolCallbackProvider weatherTools(WeatherService weatherService){
-      return MethodToolCallbackProvider.builder().toolObjects(weatherService).build();
-    }
-}
-```
-
-The `WeatherService` implements the weather tools using the `@Tool` annotation:
+Tools are registered automatically via `@McpTool` — no `ToolCallbackProvider` bean needed:
 
 ```java
 @Service
 public class WeatherService {
-    @Tool(description = "Get weather forecast for a specific latitude/longitude")
-    public String getWeatherForecastByLocation(double latitude, double longitude) {
-        // Implementation using weather.gov API
-    }
 
-    @Tool(description = "Get weather alerts for a US state. Input is Two-letter US state code (e.g., CA, NY)")
-    public String getAlerts(String state) {
-        // Implementation using weather.gov API
-    }
+    @McpTool(description = "Get weather forecast for a specific latitude/longitude")
+    public String getWeatherForecastByLocation(double latitude, double longitude) { ... }
+
+    @McpTool(description = "Get weather alerts for a US state. Input is Two-letter US state code (e.g. CA, NY)")
+    public String getAlerts(String state) { ... }
 }
 ```
 
-## MCP Clients 
+## Available Tools
 
-You can connect to the weather server using either STDIO or SSE transport:
+| Tool | Parameters | Description |
+|------|------------|-------------|
+| `getWeatherForecastByLocation` | `latitude: double`, `longitude: double` | Weather forecast for a location |
+| `getAlerts` | `state: String` | Active weather alerts for a US state (e.g. `NY`) |
 
-### Manual Clients
+## MCP Clients
 
-#### WebMVC SSE Client
+The sample includes three client implementations:
 
-For servers using SSE transport:
+- [SampleClient.java](src/main/java/org/springframework/ai/mcp/sample/client/SampleClient.java) — SSE transport
+- [ClientStdio.java](src/main/java/org/springframework/ai/mcp/sample/client/ClientStdio.java) — STDIO transport
+- [StreamableHttpClient.java](src/main/java/org/springframework/ai/mcp/sample/client/StreamableHttpClient.java) — Streamable HTTP transport
 
+### SSE Client
 ```java
 var transport = HttpClientSseClientTransport.builder("http://localhost:8080").build();
 var client = McpClient.sync(transport).build();
 ```
 
-#### STDIO Client
+### Streamable HTTP Client
+```java
+var transport = HttpClientStreamableHttpTransport.builder("http://localhost:8080").build();
+var client = McpClient.sync(transport).build();
+```
 
-For servers using STDIO transport:
-
+### STDIO Client
 ```java
 var stdioParams = ServerParameters.builder("java")
     .args("-Dspring.ai.mcp.server.stdio=true",
           "-Dspring.main.web-application-type=none",
-          "-Dspring.main.banner-mode=off",
           "-Dlogging.pattern.console=",
-          "-jar",
-          "target/mcp-weather-starter-webmvc-server-0.0.1-SNAPSHOT.jar")
+          "-jar", "target/mcp-weather-starter-webmvc-server-0.0.1-SNAPSHOT.jar")
     .build();
-
-var transport = new StdioClientTransport(stdioParams);
-var client = McpClient.sync(transport).build();
+var client = McpClient.sync(new StdioClientTransport(stdioParams)).build();
 ```
 
-The sample project includes example client implementations:
-- [SampleClient.java](src/test/java/org/springframework/ai/mcp/sample/client/SampleClient.java): Manual MCP client implementation
-- [ClientStdio.java](src/test/java/org/springframework/ai/mcp/sample/client/ClientStdio.java): STDIO transport connection
-- [ClientSse.java](src/test/java/org/springframework/ai/mcp/sample/client/ClientSse.java): SSE transport connection
+## Using the Boot Starter Client
 
-For a better development experience, consider using the [MCP Client Boot Starters](https://docs.spring.io/spring-ai/reference/api/mcp/mcp-client-boot-starter-docs.html). These starters enable auto-configuration of multiple STDIO and/or SSE connections to MCP servers. See the [starter-default-client](../../client-starter/starter-default-client) project for examples.
+Build the [starter-default-client](../../client-starter/starter-default-client) and connect via STDIO or SSE.
 
-### Boot Starter Clients
+### STDIO Transport
 
-Let's use the [starter-default-client](../../client-starter/starter-default-client) client to connect to our weather `starter-webmvc-server`.
-
-Follow the `starter-default-client` readme instruction to build a `mcp-starter-default-client-0.0.1-SNAPSHOT.jar` client application.
-
-#### STDIO Transport
-
-1. Create a `mcp-servers-config.json` configuration file with this content:
-
+`mcp-servers-config.json`:
 ```json
 {
   "mcpServers": {
@@ -188,46 +124,32 @@ Follow the `starter-default-client` readme instruction to build a `mcp-starter-d
         "-Dspring.ai.mcp.server.stdio=true",
         "-Dspring.main.web-application-type=none",
         "-Dlogging.pattern.console=",
-        "-jar",
-        "/absolute/path/to/mcp-weather-starter-webmvc-server-0.0.1-SNAPSHOT.jar"
+        "-jar", "/absolute/path/to/mcp-weather-starter-webmvc-server-0.0.1-SNAPSHOT.jar"
       ]
     }
   }
 }
 ```
 
-2. Run the client using the configuration file:
-
 ```bash
 java -Dspring.ai.mcp.client.stdio.servers-configuration=file:mcp-servers-config.json \
- -Dai.user.input='What is the weather in NY?' \
- -Dlogging.pattern.console= \
- -jar mcp-starter-default-client-0.0.1-SNAPSHOT.jar
+     -Dai.user.input='What is the weather in NY?' \
+     -Dlogging.pattern.console= \
+     -jar mcp-starter-default-client-0.0.1-SNAPSHOT.jar
 ```
 
-#### SSE (WebMVC) Transport
-
-1. Start the `mcp-weather-starter-webmvc-server`:
-
-```bash
-java -jar mcp-weather-starter-webmvc-server-0.0.1-SNAPSHOT.jar
-```
-
-starts the MCP server on port 8080.
-
-2. In another console start the client configured with SSE transport:
+### SSE Transport
 
 ```bash
 java -Dspring.ai.mcp.client.sse.connections.weather-server.url=http://localhost:8080 \
- -Dlogging.pattern.console= \
- -Dai.user.input='What is the weather in NY?' \
- -jar mcp-starter-default-client-0.0.1-SNAPSHOT.jar
+     -Dai.user.input='What is the weather in NY?' \
+     -Dlogging.pattern.console= \
+     -jar mcp-starter-default-client-0.0.1-SNAPSHOT.jar
 ```
 
 ## Additional Resources
 
-* [Spring AI Documentation](https://docs.spring.io/spring-ai/reference/)
-* [MCP Server Boot Starter](https://docs.spring.io/spring-ai/reference/api/mcp/mcp-server-boot-starter-docs.html)
-* [MCP Client Boot Starter](https://docs.spring.io/spring-ai/reference/api/mcp/mcp-client-boot-starter-docs.html)
-* [Model Context Protocol Specification](https://modelcontextprotocol.github.io/specification/)
-* [Spring Boot Auto-configuration](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.developing-auto-configuration)
+- [Spring AI Documentation](https://docs.spring.io/spring-ai/reference/)
+- [MCP Server Boot Starter](https://docs.spring.io/spring-ai/reference/api/mcp/mcp-server-boot-starter-docs.html)
+- [MCP Client Boot Starter](https://docs.spring.io/spring-ai/reference/api/mcp/mcp-client-boot-starter-docs.html)
+- [Model Context Protocol Specification](https://modelcontextprotocol.github.io/specification/)

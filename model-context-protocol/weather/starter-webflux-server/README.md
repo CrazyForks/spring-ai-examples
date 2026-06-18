@@ -1,198 +1,120 @@
-# Spring AI MCP Weather Server Sample with WebFlux Starter
+# Spring AI MCP Weather Server — WebFlux Starter
 
-This sample project demonstrates how to create an MCP server using the Spring AI MCP Server Boot Starter with WebFlux transport. It implements a weather service that exposes tools for retrieving weather information using the National Weather Service API.
+MCP server built with the Spring AI WebFlux starter. Exposes weather tools via [Streamable HTTP](https://modelcontextprotocol.io/specification/2025-03-26/basic/transports#streamable-http) (default) and STDIO transports.
 
-For more information, see the [MCP Server Boot Starter](https://docs.spring.io/spring-ai/reference/api/mcp/mcp-server-boot-starter-docs.html) reference documentation.
+Reference docs: [MCP Server Boot Starter](https://docs.spring.io/spring-ai/reference/api/mcp/mcp-server-boot-starter-docs.html)
 
-## Overview
-
-The sample showcases:
-- Integration with `spring-ai-mcp-server-webflux-spring-boot-starter`
-- Support for both SSE (Server-Sent Events) and STDIO transports
-- Automatic tool registration using Spring AI's `@Tool` annotation
-- Two weather-related tools:
-  - Get weather forecast by location (latitude/longitude)
-  - Get weather alerts by US state
-
-## Dependencies
-
-The project requires the Spring AI MCP Server WebFlux Boot Starter:
+## Dependency
 
 ```xml
 <dependency>
     <groupId>org.springframework.ai</groupId>
-    <artifactId>spring-ai-mcp-server-webflux-spring-boot-starter</artifactId>
+    <artifactId>spring-ai-starter-mcp-server-webflux</artifactId>
 </dependency>
 ```
 
-This starter provides:
-- Reactive transport using Spring WebFlux (`WebFluxSseServerTransport`)
-- Auto-configured reactive SSE endpoints
-- Optional STDIO transport
-- Included `spring-boot-starter-webflux` and `mcp-spring-webflux` dependencies
+## Build
 
-## Building the Project
-
-Build the project using Maven:
 ```bash
 ./mvnw clean install -DskipTests
 ```
 
-## Running the Server
+## Run
 
-The server supports two transport modes:
+### Streamable HTTP (default, port 8080)
 
-### WebFlux SSE Mode (Default)
 ```bash
 java -jar target/mcp-weather-starter-webflux-server-0.0.1-SNAPSHOT.jar
 ```
 
-### STDIO Mode
-To enable STDIO transport, set the appropriate properties:
+### STDIO
+
 ```bash
-java -Dspring.ai.mcp.server.stdio=true -Dspring.main.web-application-type=none -jar target/mcp-weather-starter-webflux-server-0.0.1-SNAPSHOT.jar
+java -Dspring.ai.mcp.server.stdio=true \
+     -Dspring.main.web-application-type=none \
+     -Dspring.main.banner-mode=off \
+     -Dlogging.pattern.console= \
+     -jar target/mcp-weather-starter-webflux-server-0.0.1-SNAPSHOT.jar
 ```
 
 ## Configuration
 
-Configure the server through `application.properties`:
-
 ```properties
-# Server identification
 spring.ai.mcp.server.name=my-weather-server
 spring.ai.mcp.server.version=0.0.1
+spring.ai.mcp.server.protocol=STREAMABLE
 
-# Server type (SYNC/ASYNC)
-spring.ai.mcp.server.type=SYNC
-
-# Transport configuration
-spring.ai.mcp.server.stdio=false
-spring.ai.mcp.server.sse-message-endpoint=/mcp/message
-
-# Change notifications
-spring.ai.mcp.server.resource-change-notification=true
-spring.ai.mcp.server.tool-change-notification=true
-spring.ai.mcp.server.prompt-change-notification=true
-
-# Logging (required for STDIO transport)
-spring.main.banner-mode=off
-logging.file.name=./target/starter-webflux-server.log
+# Required when using STDIO transport
+# spring.main.banner-mode=off
+# logging.pattern.console=
 ```
 
-## Available Tools
+## Tools
 
-### Weather Forecast Tool
-- Name: `getWeatherForecastByLocation`
-- Description: Get weather forecast for a specific latitude/longitude
-- Parameters:
-  - `latitude`: double - Latitude coordinate
-  - `longitude`: double - Longitude coordinate
-- Example:
-```java
-CallToolResult forecastResult = client.callTool(new CallToolRequest("getWeatherForecastByLocation",
-    Map.of("latitude", 47.6062, "longitude", -122.3321)));
-```
+| Tool | Description |
+|------|-------------|
+| `getWeatherForecastByLocation` | Forecast for a latitude/longitude (weather.gov) |
+| `getAlerts` | Active alerts for a two-letter US state code (e.g. `NY`) |
+| `toUpperCase` | Converts input text to upper case |
 
-### Weather Alerts Tool
-- Name: `getAlerts`
-- Description: Get weather alerts for a US state
-- Parameters:
-  - `state`: String - Two-letter US state code (e.g., CA, NY)
-- Example:
-```java
-CallToolResult alertResult = client.callTool(new CallToolRequest("getAlerts", 
-    Map.of("state", "NY")));
-```
+Weather tools are registered via `@McpTool` on [WeatherService](src/main/java/org/springframework/ai/mcp/sample/server/WeatherService.java). `toUpperCase` is registered programmatically in [McpServerApplication](src/main/java/org/springframework/ai/mcp/sample/server/McpServerApplication.java).
 
-## Server Implementation
+## Sample Clients
 
-The server uses Spring Boot and Spring AI's tool annotations for automatic tool registration:
+Three standalone clients are provided under [src/main/java/.../client/](src/main/java/org/springframework/ai/mcp/sample/client/):
+
+| Client | Transport |
+|--------|-----------|
+| [StreamableHttpClient.java](src/main/java/org/springframework/ai/mcp/sample/client/StreamableHttpClient.java) | Streamable HTTP (`WebClientStreamableHttpTransport`) |
+| [ClientSse.java](src/main/java/org/springframework/ai/mcp/sample/client/ClientSse.java) | SSE (`WebFluxSseClientTransport`) |
+| [ClientStdio.java](src/main/java/org/springframework/ai/mcp/sample/client/ClientStdio.java) | STDIO (`StdioClientTransport`) — starts the server automatically |
+
+### Streamable HTTP
 
 ```java
-@SpringBootApplication
-public class McpServerApplication {
-    public static void main(String[] args) {
-        SpringApplication.run(McpServerApplication.class, args);
-    }
-
-    @Bean
-    public List<ToolCallback> weatherTools(WeatherService weatherService) {
-        return List.of(ToolCallbacks.from(weatherService));
-    }
-}
-```
-
-The `WeatherService` implements the weather tools using the `@Tool` annotation:
-
-```java
-@Service
-public class WeatherService {
-    @Tool(description = "Get weather forecast for a specific latitude/longitude")
-    public String getWeatherForecastByLocation(double latitude, double longitude) {
-        // Implementation using weather.gov API
-    }
-
-    @Tool(description = "Get weather alerts for a US state. Input is Two-letter US state code (e.g., CA, NY)")
-    public String getAlerts(String state) {
-        // Implementation using weather.gov API
-    }
-}
-```
-
-## MCP Clients 
-
-You can connect to the weather server using either STDIO or SSE transport:
-
-### Manual Clients
-
-#### WebFlux SSE Client
-
-For servers using SSE transport:
-
-```java
-var transport = new WebFluxSseClientTransport(WebClient.builder().baseUrl("http://localhost:8080"));
+var transport = WebClientStreamableHttpTransport.builder(
+        WebClient.builder().baseUrl("http://localhost:8080"))
+    .build();
 var client = McpClient.sync(transport).build();
+client.initialize();
 ```
 
-#### STDIO Client
-
-For servers using STDIO transport:
+### SSE
 
 ```java
-var stdioParams = ServerParameters.builder("java")
+var transport = new WebFluxSseClientTransport(
+        WebClient.builder().baseUrl("http://localhost:8080"),
+        McpJsonDefaults.getMapper());
+var client = McpClient.sync(transport).build();
+client.initialize();
+```
+
+### STDIO
+
+```java
+var params = ServerParameters.builder("java")
     .args("-Dspring.ai.mcp.server.stdio=true",
           "-Dspring.main.web-application-type=none",
           "-Dspring.main.banner-mode=off",
           "-Dlogging.pattern.console=",
-          "-jar",
-          "target/mcp-weather-starter-webflux-server-0.0.1-SNAPSHOT.jar")
+          "-jar", "target/mcp-weather-starter-webflux-server-0.0.1-SNAPSHOT.jar")
     .build();
-
-var transport = new StdioClientTransport(stdioParams);
+var transport = new StdioClientTransport(params, McpJsonDefaults.getMapper());
 var client = McpClient.sync(transport).build();
+client.initialize();
 ```
 
-The sample project includes example client implementations:
-- [SampleClient.java](src/test/java/org/springframework/ai/mcp/sample/client/SampleClient.java): Manual MCP client implementation
-- [ClientStdio.java](src/test/java/org/springframework/ai/mcp/sample/client/ClientStdio.java): STDIO transport connection
-- [ClientSse.java](src/test/java/org/springframework/ai/mcp/sample/client/ClientSse.java): SSE transport connection
+## Boot Starter Clients
 
-For a better development experience, consider using the [MCP Client Boot Starters](https://docs.spring.io/spring-ai/reference/api/mcp/mcp-client-boot-starter-docs.html). These starters enable auto-configuration of multiple STDIO and/or SSE connections to MCP servers. See the [starter-default-client](../../client-starter/starter-default-client) and [starter-webflux-client](../../client-starter/starter-webflux-client) projects for examples.
+For a higher-level client experience see the [starter-default-client](../../client-starter/starter-default-client) and [starter-webflux-client](../../client-starter/starter-webflux-client) projects. They auto-configure STDIO and/or SSE connections via `mcp-servers-config.json`.
 
-### Boot Starter Clients
+### STDIO via starter client
 
-Lets use the [starter-webflux-client](../../client-starter/starter-webflux-client) client to connect to our weather `starter-webflux-server`.
-
-Follow the `starter-webflux-client` readme instruction to build a `mcp-starter-webflux-client-0.0.1-SNAPSHOT.jar` client application.
-
-#### STDIO Transport
-
-1. Create a `mcp-servers-config.json` configuration file with this content:
-
+`mcp-servers-config.json`:
 ```json
 {
   "mcpServers": {
-    "weather-starter-webflux-server": {
+    "weather": {
       "command": "java",
       "args": [
         "-Dspring.ai.mcp.server.stdio=true",
@@ -206,38 +128,22 @@ Follow the `starter-webflux-client` readme instruction to build a `mcp-starter-w
 }
 ```
 
-2. Run the client using the configuration file:
-
 ```bash
 java -Dspring.ai.mcp.client.stdio.servers-configuration=file:mcp-servers-config.json \
- -Dai.user.input='What is the weather in NY?' \
- -Dlogging.pattern.console= \
- -jar mcp-starter-webflux-client-0.0.1-SNAPSHOT.jar
+     -Dai.user.input='What is the weather in NY?' \
+     -Dlogging.pattern.console= \
+     -jar mcp-starter-webflux-client-0.0.1-SNAPSHOT.jar
 ```
 
-#### SSE (WebFlux) Transport
-
-1. Start the `mcp-weather-starter-webflux-server`:
+### SSE via starter client
 
 ```bash
+# Terminal 1 — start the server
 java -jar mcp-weather-starter-webflux-server-0.0.1-SNAPSHOT.jar
-```
 
-starts the MCP server on port 8080.
-
-2. In another console start the client configured with SSE transport:
-
-```bash
+# Terminal 2 — run the client
 java -Dspring.ai.mcp.client.sse.connections.weather-server.url=http://localhost:8080 \
- -Dlogging.pattern.console= \
- -Dai.user.input='What is the weather in NY?' \
- -jar mcp-starter-webflux-client-0.0.1-SNAPSHOT.jar
+     -Dai.user.input='What is the weather in NY?' \
+     -Dlogging.pattern.console= \
+     -jar mcp-starter-webflux-client-0.0.1-SNAPSHOT.jar
 ```
-
-## Additional Resources
-
-* [Spring AI Documentation](https://docs.spring.io/spring-ai/reference/)
-* [MCP Server Boot Starter](https://docs.spring.io/spring-ai/reference/api/mcp/mcp-server-boot-starter-docs.html)
-* [MCP Client Boot Starter](https://docs.spring.io/spring-ai/reference/api/mcp/mcp-server-boot-client-docs.html)
-* [Model Context Protocol Specification](https://modelcontextprotocol.github.io/specification/)
-* [Spring Boot Auto-configuration](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.developing-auto-configuration)
