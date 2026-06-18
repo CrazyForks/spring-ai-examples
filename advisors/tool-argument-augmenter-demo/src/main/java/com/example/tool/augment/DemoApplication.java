@@ -10,7 +10,6 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
-import org.springframework.ai.chat.client.advisor.ToolCallAdvisor;
 import org.springframework.ai.chat.client.advisor.api.AdvisorChain;
 import org.springframework.ai.chat.client.advisor.api.BaseAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -74,11 +73,8 @@ public class DemoApplication {
 			MessageWindowChatMemory chatMemory = MessageWindowChatMemory.builder().maxMessages(100).build();
 
 			ChatClient chatClient = chatClientBuilder // @formatter:off
-					.defaultToolCallbacks(provider)
+					.defaultTools(provider)
 					.defaultAdvisors(
-						ToolCallAdvisor.builder()
-							.advisorOrder(BaseAdvisor.HIGHEST_PRECEDENCE + 300)
-							.conversationHistoryEnabled(false).build(),
 						MessageChatMemoryAdvisor.builder(chatMemory).order(Ordered.HIGHEST_PRECEDENCE + 1000).build(),
 						new MyLogAdvisor()) // order 0 = HIGHEST_PRECEDENCE + 2147483648
 				.build();
@@ -106,7 +102,7 @@ public class DemoApplication {
 
 	static class MyLogAdvisor implements BaseAdvisor {
 
-        private ObjectMapper objectMapper = new ObjectMapper();
+		private ObjectMapper objectMapper = new ObjectMapper();
 
 		@Override
 		public int getOrder() {

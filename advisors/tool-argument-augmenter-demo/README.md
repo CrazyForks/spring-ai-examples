@@ -1,73 +1,44 @@
-# Recursive Advisor with Memory and Tool Argument Augmentation
+# Tool Argument Augmenter Demo
 
-This example demonstrates how to build **explainable AI agents** using Spring AI by capturing LLM reasoning during tool calls and integrating with chat memory for enhanced context across conversations.
-
-## Overview
-
-When building AI agents with tool calling capabilities, understanding **why** an LLM chose a particular tool is crucial for debugging, observability, and building trustworthy AI systems. This demo showcases the Spring AI [Tool Argument Augmenter](https://docs.spring.io/spring-ai/reference/2.0-SNAPSHOT/api/tools.html#tool-argument-augmentation) utilities which enables:
-
-- **Capturing LLM Reasoning**: Extract inner thoughts, confidence levels, and memory notes during tool execution
-- **Transparent Schema Augmentation**: Dynamically extend tool schemas without modifying underlying tool implementations
-- **Memory-Enhanced Reasoning**: Persist reasoning insights in conversation history for improved decision-making across extended interactions
+Demonstrates Spring AI's [Tool Argument Augmentation](https://docs.spring.io/spring-ai/reference/api/tools.html#tool-argument-augmentation) — a way to inject extra arguments into tool calls (e.g. LLM reasoning, confidence, memory notes) without modifying the underlying tool implementation.
 
 ## How It Works
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                          Tool Argument Augmenter Flow                   │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                         │
-│  1. User asks: "What is current weather in Paris?"                      │
-│                         │                                               │
-│                         ▼                                               │
-│  2. Tool Definition Augmentation                                        │
-│     Original: { location: string }                                      │
-│     Augmented: { location: string, innerThought: string,                │
-│                  confidence: string, memoryNotes: string[] }            │
-│                         │                                               │
-│                         ▼                                               │
-│  3. LLM Response with Reasoning                                         │
-│     {                                                                   │
-│       "location": "Paris",                                              │
-│       "innerThought": "User wants weather info for Paris...",           │
-│       "confidence": "high",                                             │
-│       "memoryNotes": ["User interested in Paris weather"]               │
-│     }                                                                   │
-│                         │                                               │
-│                         ▼                                               │
-│  4. Argument Consumer processes reasoning (logging, memory storage)     │
-│                         │                                               │
-│                         ▼                                               │
-│  5. Original tool receives only: { "location": "Paris" }                │
-│                                                                         │
-└─────────────────────────────────────────────────────────────────────────┘
+User: "What is the weather in Paris?"
+        │
+        ▼
+Tool schema augmented transparently:
+  Original:  { location: string }
+  Augmented: { location: string, innerThought: string,
+               confidence: string, memoryNotes: string[] }
+        │
+        ▼
+LLM fills all arguments including reasoning fields
+        │
+        ├─► argumentConsumer processes extra args (logging, observability)
+        │
+        └─► Original tool receives only: { location: "Paris" }
 ```
 
 ## Key Components
 
-### AgentThinking Record
-
-Defines the additional arguments to capture from the LLM:
+**`AgentThinking`** — defines the extra arguments added to every tool schema:
 
 ```java
 public record AgentThinking(
-    @ToolParam(description = "Your step-by-step reasoning for why you're calling this tool", 
-               required = true) 
+    @ToolParam(description = "Step-by-step reasoning for calling this tool", required = true)
     String innerThought,
-    
-    @ToolParam(description = "Confidence level (low, medium, high) in this tool choice", 
-               required = false) 
+
+    @ToolParam(description = "Confidence level (low, medium, high)", required = false)
     String confidence,
-    
-    @ToolParam(description = "Key insights to remember for future interactions", 
-               required = true) 
+
+    @ToolParam(description = "Key insights to remember for future interactions", required = true)
     List<String> memoryNotes
 ) {}
 ```
 
-### AugmentedToolCallbackProvider
-
-Wraps existing tools to transparently augment their schemas:
+**`AugmentedToolCallbackProvider`** — wraps tools and processes the extra arguments:
 
 ```java
 AugmentedToolCallbackProvider<AgentThinking> provider = AugmentedToolCallbackProvider
@@ -79,76 +50,51 @@ AugmentedToolCallbackProvider<AgentThinking> provider = AugmentedToolCallbackPro
         logger.info("LLM Reasoning: {}", thinking.innerThought());
         logger.info("Confidence: {}", thinking.confidence());
         logger.info("Memory Notes: {}", thinking.memoryNotes());
+        logger.info("Tool: {}", event.toolDefinition().name());
     })
-    .removeExtraArgumentsAfterProcessing(true)
+    .removeExtraArgumentsAfterProcessing(true) // strip before calling actual tool
     .build();
 ```
 
-### Integration with Advisors
-
-Combines tool augmentation with Spring AI's advisor chain:
+**Wired into `ChatClient` with memory and logging advisors:**
 
 ```java
 ChatClient chatClient = chatClientBuilder
-    .defaultToolCallbacks(provider)
+    .defaultTools(provider)
     .defaultAdvisors(
-        ToolCallAdvisor.builder()
-            .conversationHistoryEnabled(false).build(),
-        MessageChatMemoryAdvisor.builder(chatMemory).build(),
+        MessageChatMemoryAdvisor.builder(chatMemory).order(Ordered.HIGHEST_PRECEDENCE + 1000).build(),
         new MyLogAdvisor())
     .build();
 ```
 
-## Running the Example
+## Prerequisites
 
-### Prerequisites
+- Java 17+
+- Spring Boot 4.0.0 / Spring AI 2.0.0
+- OpenAI API key
 
-- Java 17 or higher
-- OpenAI API key (or Anthropic API key)
-
-### Configuration
-
-Set your API key as an environment variable:
+## Run
 
 ```bash
 export OPENAI_API_KEY=your-api-key
-# or
-export ANTHROPIC_API_KEY=your-api-key
-```
 
-### Build and Run
-
-```bash
-cd advisors/recursive-advisor-with-memory
+cd advisors/tool-argument-augmenter-demo
 ./mvnw spring-boot:run
 ```
 
 ## Sample Output
 
-When running the example, you'll see the LLM's reasoning captured before each tool call:
-
 ```
-LLM Reasoning: The user is asking about the current weather in Paris. I need to call the weather tool...
+LLM Reasoning: The user wants current weather in Paris. I should call the weather tool with location=Paris.
 Confidence: high
-Memory Notes: [User interested in Paris weather, May need follow-up about activities]
+Memory Notes: [User interested in Paris weather]
 Tool: weather
 
-REQUEST: [{"type":"USER","text":"What is current weather in Paris?"}]
-
-RESPONSE: [{"output":{"text":"The current weather in Paris is sunny with a temperature of 25°C."}}]
+MyResponse[result=The current weather in Paris is sunny with a temperature of 25°C., thinking=...]
 ```
-
-## Use Cases
-
-- **Debugging**: Understand why your AI agent made specific tool choices
-- **Observability**: Log and monitor agent reasoning in production
-- **Memory Enhancement**: Store insights for improved context in future conversations
-- **Multi-Agent Coordination**: Pass coordination signals between agents
-- **Analytics**: Track tool usage patterns and decision quality
 
 ## Resources
 
+- [Tool Argument Augmentation Docs](https://docs.spring.io/spring-ai/reference/api/tools.html#tool-argument-augmentation)
 - [Explainable AI Agents Blog Post](https://spring.io/blog/2025/12/21/explainable-ai-agents-capture-llm-tool-call-reasoning-with-spring-ai)
-- [Spring AI Tool Calling Documentation](https://docs.spring.io/spring-ai/reference/api/tools.html)
 - [Spring AI Advisors Guide](https://docs.spring.io/spring-ai/reference/api/advisors.html)
-- [Tool Argument Augmenter](https://docs.spring.io/spring-ai/reference/2.0-SNAPSHOT/api/tools.html#tool-argument-augmentation)

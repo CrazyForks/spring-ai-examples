@@ -5,7 +5,7 @@ import tools.jackson.databind.ObjectMapper;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
-import org.springframework.ai.chat.client.advisor.ToolCallAdvisor;
+import org.springframework.ai.chat.client.advisor.ToolCallingAdvisor;
 import org.springframework.ai.chat.client.advisor.api.AdvisorChain;
 import org.springframework.ai.chat.client.advisor.api.BaseAdvisor;
 import org.springframework.ai.tool.annotation.Tool;
@@ -28,9 +28,10 @@ public class RecursiveAdvisorDemoApplication {
 			ChatClient chatClient = chatClientBuilder // @formatter:off
 					.defaultTools(new MyTools())
 					.defaultAdvisors(
-						ToolCallAdvisor.builder().build(),
+						// This is optional. the DeafultChatClient will auto-register a ToolCallingAdvisor if one is not already registered.
+						ToolCallingAdvisor.builder().build(),
 						new MyLogAdvisor())
-				.build(); 
+				.build();
 				
 				var answer = chatClient
 					.prompt("What is current weather in Paris?")
@@ -44,16 +45,17 @@ public class RecursiveAdvisorDemoApplication {
 	}
 
 	static class MyTools {
-		
+
 		@Tool(description = "Get the current weather for a given location")
 		public String weather(String location) {
 			return "The current weather in " + location + " is sunny with a temperature of 25°C.";
 		}
+
 	}
 
 	static class MyLogAdvisor implements BaseAdvisor {
 
-        private ObjectMapper objectMapper = new ObjectMapper();
+		private ObjectMapper objectMapper = new ObjectMapper();
 
 		@Override
 		public int getOrder() {
