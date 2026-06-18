@@ -1,8 +1,8 @@
-# Spring AI Java Function Callback Demo with OpenAI
-This Spring Boot application demonstrates the implementation of function callbacks using OpenAI's API and Spring AI. The app simulates weather information retrieval for different cities using a mock weather service.
+# Spring AI Java Tool Callback Demo with OpenAI
+This Spring Boot application demonstrates the implementation of tool callbacks using OpenAI's API and Spring AI. The app simulates weather information retrieval for different cities using a mock weather service.
 ## Overview
 The application showcases how to:
-- Integrate OpenAI's function calling capabilities with Spring Boot
+- Integrate OpenAI's tool calling capabilities with Spring Boot
 - Handle weather-related queries using a mock weather service
 - Process and respond to natural language requests for weather information
 ## Components
@@ -35,16 +35,21 @@ The mock service provides simulated weather data for three cities:
 ## Usage Example
 The application demonstrates usage through a command line runner:
 ```java
+ToolCallback weatherFunctionInfo = FunctionToolCallback.builder("WeatherInfo", currentWeather)
+    .description("Find the weather conditions, forecasts, and temperatures for a location, like a city or state.")
+    .inputType(WeatherRequest.class)
+    .build();
+
 ChatResponse response = chatClient
-.prompt("What are the weather conditions in San Francisco, Tokyo, and Paris?")
-.functions("WeatherInfo")
-.call()
-.chatResponse();
+    .prompt("What are the weather conditions in San Francisco, Tokyo, and Paris? Find the temperature in Celsius for each of the three locations.")
+    .tools(weatherFunctionInfo)
+    .call()
+    .chatResponse();
 ```
 ## Dependencies
 The project uses Maven for dependency management. All required dependencies are included in the pom.xml file:
 - Spring Boot Starter (spring-boot-starter)
-- Spring AI OpenAI Starter (spring-ai-openai-spring-boot-starter)
+- Spring AI OpenAI Starter (spring-ai-starter-model-openai)
 - Spring Boot Starter Test (spring-boot-starter-test)
 - Jackson libraries for JSON processing
 - Other Spring framework dependencies
@@ -54,7 +59,7 @@ The project uses Maven for dependency management. All required dependencies are 
 Clone the repository
 Set your OpenAI API key in the application configuration:
 ```properties
-openai.api.key=your_api_key_here
+spring.ai.openai.api-key=your_api_key_here
 ```
 Run the application using:
 ```bash

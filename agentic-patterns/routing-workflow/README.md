@@ -76,4 +76,4 @@ The implementation consists of two main components:
 ## References
 
 - [Building Effective Agents](https://www.anthropic.com/research/building-effective-agents) - Anthropic Research
-- [Spring AI Documentation](https://docs.spring.io/spring-ai/reference/1.0/api/chatclient.html)
+- [Spring AI Documentation](https://docs.spring.io/spring-ai/reference/api/chatclient.html)

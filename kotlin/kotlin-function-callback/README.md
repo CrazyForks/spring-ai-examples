@@ -1,12 +1,12 @@
-# Spring AI Kotlin Function Callback Demo
+# Spring AI Kotlin Tool Callback Demo
 
-This project demonstrates the implementation of Function Callbacks in Spring AI using Kotlin, specifically showing how to integrate OpenAI's API to handle weather-related queries.
+This project demonstrates the implementation of Tool Callbacks in Spring AI using Kotlin, specifically showing how to integrate OpenAI's API to handle weather-related queries.
 
 ## Overview
 
 The application showcases how to:
 - Set up Spring AI with Kotlin
-- Implement Function Callbacks for weather information
+- Implement Tool Callbacks for weather information
 - Use mock weather service for demonstration
 - Handle OpenAI API integration through Spring AI
 
@@ -26,10 +26,10 @@ The `KotlinFunctionCallbackApplication` class initializes the Spring Boot applic
 
 ### 2. Configuration
 
-The `Config` class sets up the necessary beans for function callbacks:
-- Configures the weather function information
+The `Config` class sets up the necessary beans for tool callbacks:
+- Configures the weather tool information
 - Sets up the mock weather service
-- Defines the function callback structure
+- Defines the tool callback structure
 
 ### 3. Weather Service
 
@@ -64,7 +64,7 @@ spring.ai.openai.api-key=your-api-key-here
 mvn spring-boot:run
 ```
 
-The application will execute a sample weather query for San Francisco, Tokyo, and Paris, demonstrating how function callbacks work with Spring AI.
+The application will execute a sample weather query for San Francisco, Tokyo, and Paris, demonstrating how tool callbacks work with Spring AI.
 
 ## Example Output
 
@@ -79,7 +79,7 @@ Paris: 15°C
 ## Implementation Details
 
 1. The application uses Spring AI's `ChatClient` to interact with OpenAI's API
-2. Function callbacks are registered through the `FunctionCallback` builder
+2. Tool callbacks are registered using `FunctionToolCallback.builder()` returning `ToolCallback` instances
 3. Weather queries are handled by the mock service for demonstration purposes
 4. The application uses Kotlin data classes for type-safe request/response handling
 

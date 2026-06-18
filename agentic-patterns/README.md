@@ -116,7 +116,6 @@ This project leverages several key features from Spring AI to implement the work
 
 2. **Model Support**: Wide range of supported LLM providers
    - OpenAI (GPT models)
-   - Azure OpenAI
    - Anthropic (Claude models)
    - Ollama (local models)
    - And more...
@@ -135,7 +134,7 @@ These features provide a robust foundation for building reliable and maintainabl
 
 ### Spring AI Model Portability
 
-The workflows in this project are model-agnostic and can work with any of the [chat models supported by Spring AI](https://docs.spring.io/spring-ai/reference/1.0/api/chat/comparison.html). To switch between different models:
+The workflows in this project are model-agnostic and can work with any of the [chat models supported by Spring AI](https://docs.spring.io/spring-ai/reference/api/chat/comparison.html). To switch between different models:
 
 1. Replace the model-specific starter dependency in your `pom.xml`:
 
@@ -143,20 +142,19 @@ The workflows in this project are model-agnostic and can work with any of the [c
 <!-- OpenAI -->
 <dependency>
     <groupId>org.springframework.ai</groupId>
-    <artifactId>spring-ai-openai-spring-boot-starter</artifactId>
+    <artifactId>spring-ai-starter-model-openai</artifactId>
 </dependency>
-
 
 <!-- Anthropic -->
 <dependency>
     <groupId>org.springframework.ai</groupId>
-    <artifactId>spring-ai-anthropic-spring-boot-starter</artifactId>
+    <artifactId>spring-ai-starter-model-anthropic</artifactId>
 </dependency>
 
 <!-- Ollama -->
 <dependency>
     <groupId>org.springframework.ai</groupId>
-    <artifactId>spring-ai-ollama-spring-boot-starter</artifactId>
+    <artifactId>spring-ai-starter-model-ollama</artifactId>
 </dependency>
 ```
 
@@ -165,28 +163,23 @@ The workflows in this project are model-agnostic and can work with any of the [c
 ```properties
 # OpenAI Configuration
 spring.ai.openai.api-key=your-api-key
-spring.ai.openai.model=gpt-3.5-turbo
-
-# Azure OpenAI Configuration
-spring.ai.azure.openai.api-key=your-api-key
-spring.ai.azure.openai.endpoint=your-endpoint
-spring.ai.azure.openai.model=gpt-35-turbo
+spring.ai.openai.chat.model=gpt-4o
 
 # Anthropic Configuration
 spring.ai.anthropic.api-key=your-api-key
-spring.ai.anthropic.model=claude-3-opus-20240229
+spring.ai.anthropic.chat.model=claude-sonnet-4-5
 
 # Ollama Configuration
 spring.ai.ollama.base-url=http://localhost:11434
-spring.ai.ollama.model=llama3.2:latest
+spring.ai.ollama.chat.model=llama3.2:latest
 ```
 
-Detailed configuration options for each model can be found in the [Spring AI Chat Models documentation](https://docs.spring.io/spring-ai/reference/1.0/api/chatmodel.html).
+Detailed configuration options for each model can be found in the [Spring AI Chat Models documentation](https://docs.spring.io/spring-ai/reference/api/chatmodel.html).
 
 
 ### Spring AI Structured Output
 
-Several patterns in this project use Spring AI's [Structured Output Converter](https://docs.spring.io/spring-ai/reference/1.0/api/structured-output-converter.html) to handle structured responses from LLMs. This feature allows for:
+Several patterns in this project use Spring AI's [Structured Output Converter](https://docs.spring.io/spring-ai/reference/api/structured-output-converter.html) to handle structured responses from LLMs. This feature allows for:
 - Converting LLM responses into strongly-typed Java objects
 - Ensuring consistent response formats
 - Type-safe handling of LLM outputs
@@ -235,6 +228,6 @@ record TransformationResult(String output, List<String> steps)
 ## References
 
 - [Building Effective Agents (Anthropic Research)](https://www.anthropic.com/research/building-effective-agents)
-- [Spring AI Documentation](https://docs.spring.io/spring-ai/reference/1.0/api/chatclient.html)
-- [Spring AI Chat Models](https://docs.spring.io/spring-ai/reference/1.0/api/chatmodel.html)
-- [Spring AI Structured Output](https://docs.spring.io/spring-ai/reference/1.0/api/structured-output-converter.html)
+- [Spring AI Documentation](https://docs.spring.io/spring-ai/reference/api/chatclient.html)
+- [Spring AI Chat Models](https://docs.spring.io/spring-ai/reference/api/chatmodel.html)
+- [Spring AI Structured Output](https://docs.spring.io/spring-ai/reference/api/structured-output-converter.html)

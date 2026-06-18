@@ -82,5 +82,5 @@ This project is licensed under the Apache License 2.0 - see the LICENSE file for
 
 ## References
 
-- [Spring AI Documentation](https://docs.spring.io/spring-ai/reference/1.0/api/chatclient.html)
+- [Spring AI Documentation](https://docs.spring.io/spring-ai/reference/api/chatclient.html)
 - [Building Effective Agents - Anthropic](https://www.anthropic.com/research/building-effective-agents)

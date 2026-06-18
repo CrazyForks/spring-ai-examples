@@ -67,5 +67,5 @@ spring.ai.chat.client.enabled=false
 ## Reference
 
 - [Recursive Advisor Demo](../recursive-advisor-demo) — basic recursive patterns
-- [Spring AI Advisors](https://docs.spring.io/spring-ai/reference/2.0-SNAPSHOT/api/advisors.html)
+- [Spring AI Advisors](https://docs.spring.io/spring-ai/reference/api/advisors.html)
 - [Judge Arena Leaderboard](https://huggingface.co/spaces/AtlaAI/judge-arena)

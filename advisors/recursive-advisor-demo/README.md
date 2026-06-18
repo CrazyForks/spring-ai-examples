@@ -40,5 +40,5 @@ export ANTHROPIC_API_KEY=your-key
 
 ## Reference
 
-- [Spring AI Advisors](https://docs.spring.io/spring-ai/reference/2.0-SNAPSHOT/api/advisors.html)
-- [Spring AI Tool Calling](https://docs.spring.io/spring-ai/reference/2.0-SNAPSHOT/api/tools.html)
+- [Spring AI Advisors](https://docs.spring.io/spring-ai/reference/api/advisors.html)
+- [Spring AI Tool Calling](https://docs.spring.io/spring-ai/reference/api/tools.html)
