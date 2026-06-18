@@ -146,11 +146,6 @@ The workflows in this project are model-agnostic and can work with any of the [c
     <artifactId>spring-ai-openai-spring-boot-starter</artifactId>
 </dependency>
 
-<!-- Azure OpenAI -->
-<dependency>
-    <groupId>org.springframework.ai</groupId>
-    <artifactId>spring-ai-azure-openai-spring-boot-starter</artifactId>
-</dependency>
 
 <!-- Anthropic -->
 <dependency>

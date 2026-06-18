@@ -59,8 +59,8 @@ export ANTHROPIC_API_KEY=your-key
 
 `application.properties` (already configured):
 ```properties
-spring.ai.ollama.chat.options.model=avcodes/flowaicom-flow-judge:q4
-spring.ai.ollama.chat.options.temperature=0
+spring.ai.ollama.chat.model=avcodes/flowaicom-flow-judge:q4
+spring.ai.ollama.chat.temperature=0
 spring.ai.chat.client.enabled=false
 ```
 
